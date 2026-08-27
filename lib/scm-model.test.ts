@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeLeadtimeGap } from './scm-model.ts';
+import { normalizeLeadtimeGap, normalizeStockoutKpi, normalizeStockoutRisk } from './scm-model.ts';
 
 test('normalizes analytics leadtime rows into the screen model', () => {
   const result = normalizeLeadtimeGap({
@@ -51,5 +51,59 @@ test('reads the real analytics.v_leadtime_gap column names', () => {
     actualAverage: 28.4,
     p80: 33,
     gap: 8,
+  });
+});
+
+test('normalizes analytics stockout risk rows and preserves unknown reasons', () => {
+  const result = normalizeStockoutRisk({
+    item_id: 'ITEM020',
+    item_name: 'Toner Black',
+    supplier_id: 'SUP003',
+    current_stock: 0,
+    inbound_qty: 0,
+    available_qty: 0,
+    daily_usage_avg: null,
+    cv: 0.42,
+    planned_lead_time: 28,
+    stockout_days: null,
+    stockout_date: null,
+    risk_status: 'UNKNOWN',
+    reason: 'NO_USAGE',
+  });
+
+  assert.deepEqual(result, {
+    itemId: 'ITEM020',
+    itemName: 'Toner Black',
+    supplierId: 'SUP003',
+    currentStock: 0,
+    inboundQty: 0,
+    availableQty: 0,
+    dailyUsageAvg: null,
+    cv: 0.42,
+    plannedLeadTime: 28,
+    stockoutDays: null,
+    stockoutDate: null,
+    riskStatus: 'UNKNOWN',
+    reason: 'NO_USAGE',
+  });
+});
+
+test('normalizes stockout KPI aliases', () => {
+  const result = normalizeStockoutKpi({
+    n_items: 20,
+    n_critical: 3,
+    n_safe: 15,
+    n_unknown: 2,
+    n_within_30d: 4,
+    avg_stockout_days: 46.5,
+  });
+
+  assert.deepEqual(result, {
+    itemCount: 20,
+    criticalCount: 3,
+    safeCount: 15,
+    unknownCount: 2,
+    within30DaysCount: 4,
+    averageStockoutDays: 46.5,
   });
 });
