@@ -128,6 +128,8 @@ reason?: 'NO_USAGE' | 'NO_LEADTIME';
 
 ### 8. 변경 후 `npm run build` 를 실행한다
 
+### 9. 시스템에 변경 이력이 발생 하면 아키텍처.md 파일도 업데이트 해야한다.
+
 ---
 
 ## 검증하는 법
@@ -152,3 +154,5 @@ reason?: 'NO_USAGE' | 'NO_LEADTIME';
 | 데이터가 빈 배열 | 스키마 미노출 | Settings → API → Exposed schemas 에 `core`, `analytics` 추가 |
 | 설정을 고쳤는데 그대로 | dev 서버 캐시 | `Ctrl+C` 후 `npm run dev` |
 | 화면이 갱신 안 됨 | 페이지 캐시 | `export const dynamic = 'force-dynamic'` 추가 |
+
+사용자가 error 발생에 대한 해결을 요청 한 경우, error.md 파일에 에러 내용과 해결 방법을 작성 해주세요. 

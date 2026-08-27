@@ -117,6 +117,11 @@ button {
 .nav-button.complete {
   color: #d5f3e4;
 }
+.sidebar-analysis {
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
 .nav-number {
   width: 22px;
   height: 22px;
@@ -132,7 +137,7 @@ button {
   border-color: transparent;
 }
 .sidebar-foot {
-  margin-top: auto;
+  margin-top: 18px;
   padding: 15px 10px 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   color: #8fa7c0;
