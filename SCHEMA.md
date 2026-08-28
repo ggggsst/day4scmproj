@@ -206,3 +206,10 @@ Project Settings → API → Data API → Exposed schemas
 `analytics.v_sku_demand_profile`은 ADI, CV, CV², 무수요율, 추세, 최근 3기간 변화율, 최조 기간 기준의 peak, 수요 유형, 계절성 판정 가능 여부를 SQL로 계산한다. 수요 유형은 `SMOOTH`, `INTERMITTENT`, `ERRATIC`, `LUMPY` 코드만 사용한다. 24기간 미만의 계절성은 `null + INSUFFICIENT_PERIODS`로 반환한다. `analytics.v_demand_profile_kpi`는 유형별 SKU 수와 Croston 후보 수를 제공한다.
 
 화면 `/analysis/demand-profile`은 `lib/scm.ts`에서 analytics view를 조회하고 `EmptyValue`와 공통 `Badge`를 사용한다. 필터는 저장된 결과의 표시 범위만 줄이며 React에서 ADI·CV·추세를 재계산하지 않는다.
+## STEP 6 Forecast Engine
+
+`supabase/migrations/20260828000500_create_forecast_engine.sql`은 `core.v_train_period_grid`만 Forecast 계산 입력으로 사용한다. `core.model_config`에는 `MA_3M`, `MA_6M`, `WMA_3M`, `PY_SAME_MONTH`, `SEASONAL_NAIVE`와 parameters·적용 수요 유형이 저장된다. parameters를 변경해도 애플리케이션 코드를 수정할 필요가 없다.
+
+`core.run_baseline_forecast()`는 ADMIN만 실행할 수 있으며 활성 setting과 enabled 모델을 읽고, `core.model_version`에 모델 정의 snapshot을 저장한 뒤 `core.forecast_run`을 RUNNING으로 만들고 `core.forecast_result`를 적재한다. 정상 실행은 SUCCESS, 예외는 FAILED와 message로 남긴다. 결과의 `basis`가 `INSUFFICIENT_HISTORY`이면 point와 interval을 null로 유지한다.
+
+화면은 `/admin/forecast-models`와 `/admin/forecast-runs`이며 core 테이블을 직접 읽지 않고 `analytics.v_model_config`, `v_forecast_run`, `v_forecast_result`, `v_forecast_run_kpi`를 조회한다. `analytics.v_forecast_run.is_stale`는 현재 원천 loaded_at 최대값이 실행 snapshot보다 큰지로 판정한다. STEP 7은 `run_id`를 기준으로 저장된 모델별 결과를 비교·선택하며 화면에서 Forecast를 재실행하지 않는다.

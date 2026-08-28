@@ -182,3 +182,23 @@ export function normalizeDemandProfile(row: Record<string, unknown>): DemandProf
 export function normalizeDemandProfileKpi(row: Record<string, unknown>): DemandProfileKpi {
   return { totalItems: numberValue(row, ['total_items']) ?? 0, smooth: numberValue(row, ['n_smooth']) ?? 0, intermittent: numberValue(row, ['n_intermittent']) ?? 0, erratic: numberValue(row, ['n_erratic']) ?? 0, lumpy: numberValue(row, ['n_lumpy']) ?? 0, crostonNeeded: numberValue(row, ['n_croston_needed']) ?? 0, calculationUnavailable: numberValue(row, ['n_calculation_unavailable']) ?? 0 };
 }
+
+export type ForecastModel = { modelId: string; modelName: string; family: string; engine: string; version: string; enabled: boolean; isDefault: boolean; applicableDemandType: string[]; parameters: Record<string, unknown>; description: string | null; updatedAt: string | null };
+export type ForecastRun = { runId: string; status: 'RUNNING' | 'SUCCESS' | 'FAILED'; granularity: string; trainStart: string | null; trainEnd: string | null; horizon: number | null; championMetric: string | null; dataSnapshotAt: string | null; models: string[]; nModels: number; nItems: number; nRows: number; startedAt: string | null; finishedAt: string | null; durationMs: number | null; triggeredEmail: string | null; note: string | null; message: string | null; isStale: boolean };
+export type ForecastResult = { runId: string; modelId: string; itemId: string; period: string; modelVersion: string; predictedQty: number | null; p50: number | null; p80: number | null; p90: number | null; sigma: number | null; basis: string };
+
+function jsonValue(row: Record<string, unknown>, key: string): Record<string, unknown> { return row[key] && typeof row[key] === 'object' && !Array.isArray(row[key]) ? row[key] as Record<string, unknown> : {}; }
+function stringArray(row: Record<string, unknown>, key: string): string[] { return Array.isArray(row[key]) ? row[key].filter((value): value is string => typeof value === 'string') : []; }
+
+export function normalizeForecastModel(row: Record<string, unknown>): ForecastModel {
+  return { modelId: String(value(row, ['model_id']) ?? ''), modelName: String(value(row, ['model_name']) ?? ''), family: String(value(row, ['family']) ?? ''), engine: String(value(row, ['engine']) ?? ''), version: String(value(row, ['version']) ?? ''), enabled: row.enabled === true, isDefault: row.is_default === true, applicableDemandType: stringArray(row, 'applicable_demand_type'), parameters: jsonValue(row, 'parameters'), description: value(row, ['description']) as string | null, updatedAt: value(row, ['updated_at']) as string | null };
+}
+
+export function normalizeForecastRun(row: Record<string, unknown>): ForecastRun {
+  const status = value(row, ['status']);
+  return { runId: String(value(row, ['run_id']) ?? ''), status: status === 'RUNNING' || status === 'SUCCESS' || status === 'FAILED' ? status : 'FAILED', granularity: String(value(row, ['granularity']) ?? ''), trainStart: value(row, ['train_start']) as string | null, trainEnd: value(row, ['train_end']) as string | null, horizon: numberValue(row, ['horizon']), championMetric: value(row, ['champion_metric']) as string | null, dataSnapshotAt: value(row, ['data_snapshot_at']) as string | null, models: stringArray(row, 'models'), nModels: numberValue(row, ['n_models']) ?? 0, nItems: numberValue(row, ['n_items']) ?? 0, nRows: numberValue(row, ['n_rows']) ?? 0, startedAt: value(row, ['started_at']) as string | null, finishedAt: value(row, ['finished_at']) as string | null, durationMs: numberValue(row, ['duration_ms']), triggeredEmail: value(row, ['triggered_email']) as string | null, note: value(row, ['note']) as string | null, message: value(row, ['message']) as string | null, isStale: row.is_stale === true };
+}
+
+export function normalizeForecastResult(row: Record<string, unknown>): ForecastResult {
+  return { runId: String(value(row, ['run_id']) ?? ''), modelId: String(value(row, ['model_id']) ?? ''), itemId: String(value(row, ['item_id']) ?? ''), period: String(value(row, ['period']) ?? ''), modelVersion: String(value(row, ['model_version']) ?? ''), predictedQty: numberValue(row, ['predicted_qty']), p50: numberValue(row, ['p50']), p80: numberValue(row, ['p80']), p90: numberValue(row, ['p90']), sigma: numberValue(row, ['sigma']), basis: String(value(row, ['basis']) ?? 'CALCULATION_UNAVAILABLE') };
+}
