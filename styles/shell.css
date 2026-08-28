@@ -1,0 +1,36 @@
+.app-shell {
+  background: var(--color-background);
+}
+
+.sidebar {
+  width: 240px;
+  flex-basis: 240px;
+  background: var(--color-primary);
+}
+
+.main,
+.analysis-shell {
+  min-width: 0;
+  background: var(--color-background);
+}
+
+.topbar,
+.analysis-topbar {
+  background: var(--color-surface);
+  border-color: var(--color-outline);
+}
+
+.content,
+.analysis-page {
+  max-width: var(--layout-container-max);
+}
+
+.analysis-shell {
+  min-height: 100vh;
+}
+
+@media (max-width: 760px) {
+  .sidebar {
+    width: 100%;
+  }
+}

@@ -1,8 +1,12 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import AnalysisTabs from '@/components/analysis/analysis-tabs';
+import { requireUser } from '@/lib/auth';
 
-export default function AnalysisLayout({ children }: { children: ReactNode }) {
+export const dynamic = 'force-dynamic';
+
+export default async function AnalysisLayout({ children }: { children: ReactNode }) {
+  await requireUser();
   return (
     <div className="analysis-shell">
       <header className="analysis-topbar">
