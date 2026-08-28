@@ -3,8 +3,18 @@ import {
   normalizeLeadtimeGap,
   normalizeStockoutKpi,
   normalizeStockoutRisk,
+  normalizeForecastDataCoverage,
+  normalizeForecastSetting,
+  normalizePolicyConfig,
+  normalizeOutlierRule,
+  normalizeItemPolicy,
   type LeadtimeGap,
   type StockoutRisk,
+  type ForecastDataCoverage,
+  type ForecastSetting,
+  type PolicyConfig,
+  type OutlierRule,
+  type ItemPolicy,
 } from './scm-model';
 
 export async function getLeadtimeGap(): Promise<{ rows: LeadtimeGap[]; error: string | null }> {
@@ -40,5 +50,30 @@ export async function getStockoutRisk(): Promise<{ rows: StockoutRisk[]; error: 
     };
   } catch (error) {
     return { rows: [], error: error instanceof Error ? error.message : 'Supabase 조회에 실패했습니다.' };
+  }
+}
+
+export async function getForecastSettingsData() {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const [coverage, settings, policies, rules, itemPolicies] = await Promise.all([
+      supabase.schema('analytics').from('v_data_coverage').select('*').maybeSingle(),
+      supabase.schema('core').from('forecast_setting').select('*').order('created_at', { ascending: false }),
+      supabase.schema('core').from('policy_config').select('*').eq('active', true).order('policy_key'),
+      supabase.schema('core').from('outlier_rule').select('*').eq('active', true).order('rule_code'),
+      supabase.schema('core').from('item_policy').select('*').order('item_id'),
+    ]);
+    const firstError = [coverage, settings, policies, rules, itemPolicies].find((result) => result.error)?.error;
+    if (firstError) return { coverage: null, settings: [], policies: [], rules: [], itemPolicies: [], error: firstError.message };
+    return {
+      coverage: coverage.data ? normalizeForecastDataCoverage(coverage.data as Record<string, unknown>) : null,
+      settings: (settings.data ?? []).map((row) => normalizeForecastSetting(row as Record<string, unknown>)),
+      policies: (policies.data ?? []).map((row) => normalizePolicyConfig(row as Record<string, unknown>)),
+      rules: (rules.data ?? []).map((row) => normalizeOutlierRule(row as Record<string, unknown>)),
+      itemPolicies: (itemPolicies.data ?? []).map((row) => normalizeItemPolicy(row as Record<string, unknown>)),
+      error: null,
+    } as { coverage: ForecastDataCoverage | null; settings: ForecastSetting[]; policies: PolicyConfig[]; rules: OutlierRule[]; itemPolicies: ItemPolicy[]; error: string | null };
+  } catch (error) {
+    return { coverage: null, settings: [], policies: [], rules: [], itemPolicies: [], error: error instanceof Error ? error.message : 'Supabase 조회에 실패했습니다.' };
   }
 }

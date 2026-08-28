@@ -33,6 +33,35 @@ export type StockoutKpi = {
   averageStockoutDays: number | null;
 };
 
+export type ForecastDataCoverage = {
+  dataStart: string | null;
+  dataEnd: string | null;
+  trainStart: string | null;
+  trainEnd: string | null;
+  testStart: string | null;
+  testEnd: string | null;
+  granularity: string | null;
+  trainRowCount: number;
+  testRowCount: number;
+  trainWindowOk: boolean;
+  testWindowOk: boolean;
+  dataIsolationOk: boolean;
+};
+
+export type ForecastSetting = {
+  settingId: string;
+  trainStart: string;
+  trainEnd: string;
+  testStart: string;
+  testEnd: string;
+  granularity: string;
+  active: boolean;
+};
+
+export type PolicyConfig = { policyKey: string; policyValue: unknown; valueType: string; description: string | null; active: boolean };
+export type OutlierRule = { ruleCode: string; ruleName: string; conditionType: string; conditionValue: unknown; excludeFromTraining: boolean; active: boolean };
+export type ItemPolicy = { itemId: string; moq: number | null; packSize: number | null; itemGrade: string | null; serviceLevel: number | null };
+
 function value(row: Record<string, unknown>, keys: string[]) {
   for (const key of keys) {
     if (row[key] !== undefined && row[key] !== null && row[key] !== '') return row[key];
@@ -98,4 +127,45 @@ export function normalizeStockoutKpi(row: Record<string, unknown>): StockoutKpi 
     within30DaysCount: numberValue(row, ['n_within_30d', 'within30DaysCount', '30일이내소진수']) ?? 0,
     averageStockoutDays: numberValue(row, ['avg_stockout_days', 'averageStockoutDays', '평균소진일수']),
   };
+}
+
+export function normalizeForecastDataCoverage(row: Record<string, unknown>): ForecastDataCoverage {
+  return {
+    dataStart: value(row, ['data_start', 'dataStart']) as string | null,
+    dataEnd: value(row, ['data_end', 'dataEnd']) as string | null,
+    trainStart: value(row, ['train_start', 'trainStart']) as string | null,
+    trainEnd: value(row, ['train_end', 'trainEnd']) as string | null,
+    testStart: value(row, ['test_start', 'testStart']) as string | null,
+    testEnd: value(row, ['test_end', 'testEnd']) as string | null,
+    granularity: value(row, ['granularity']) as string | null,
+    trainRowCount: numberValue(row, ['train_row_count', 'trainRowCount']) ?? 0,
+    testRowCount: numberValue(row, ['test_row_count', 'testRowCount']) ?? 0,
+    trainWindowOk: row.train_window_ok === true,
+    testWindowOk: row.test_window_ok === true,
+    dataIsolationOk: row.data_isolation_ok === true,
+  };
+}
+
+export function normalizeForecastSetting(row: Record<string, unknown>): ForecastSetting {
+  return {
+    settingId: String(value(row, ['setting_id']) ?? ''),
+    trainStart: String(value(row, ['train_start']) ?? ''),
+    trainEnd: String(value(row, ['train_end']) ?? ''),
+    testStart: String(value(row, ['test_start']) ?? ''),
+    testEnd: String(value(row, ['test_end']) ?? ''),
+    granularity: String(value(row, ['granularity']) ?? ''),
+    active: row.active === true,
+  };
+}
+
+export function normalizePolicyConfig(row: Record<string, unknown>): PolicyConfig {
+  return { policyKey: String(value(row, ['policy_key']) ?? ''), policyValue: row.policy_value ?? null, valueType: String(value(row, ['value_type']) ?? ''), description: value(row, ['description']) as string | null, active: row.active === true };
+}
+
+export function normalizeOutlierRule(row: Record<string, unknown>): OutlierRule {
+  return { ruleCode: String(value(row, ['rule_code']) ?? ''), ruleName: String(value(row, ['rule_name']) ?? ''), conditionType: String(value(row, ['condition_type']) ?? ''), conditionValue: row.condition_value ?? null, excludeFromTraining: row.exclude_from_training === true, active: row.active === true };
+}
+
+export function normalizeItemPolicy(row: Record<string, unknown>): ItemPolicy {
+  return { itemId: String(value(row, ['item_id']) ?? ''), moq: numberValue(row, ['moq']), packSize: numberValue(row, ['pack_size']), itemGrade: value(row, ['item_grade']) as string | null, serviceLevel: numberValue(row, ['service_level']) };
 }

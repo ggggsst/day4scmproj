@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Boxes, FileText, Gauge, Layers3, PackageCheck, Settings2, ShoppingCart, SlidersHorizontal } from 'lucide-react';
+import { BarChart3, Boxes, FileText, Gauge, PackageCheck, Settings2, ShoppingCart, SlidersHorizontal, UserRound } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { USER_MENU, type MenuIcon, type WorkflowStepId } from '@/lib/menu';
 
@@ -16,12 +16,14 @@ const icons: Record<MenuIcon, LucideIcon> = {
   leadtime: BarChart3,
   stockout: PackageCheck,
   settings: SlidersHorizontal,
+  account: UserRound,
 };
 
 export default function Sidebar({ activeStep, onWorkflowSelect }: { activeStep: WorkflowStepId; onWorkflowSelect: (step: WorkflowStepId) => void }) {
   const pathname = usePathname();
   const workflowMenu = USER_MENU.filter((item) => item.kind === 'workflow');
   const analysisMenu = USER_MENU.filter((item) => item.kind === 'analysis');
+  const accountMenu = USER_MENU.filter((item) => item.id === 'account');
 
   return (
     <aside className="sidebar">
@@ -48,7 +50,8 @@ export default function Sidebar({ activeStep, onWorkflowSelect }: { activeStep: 
           </Link>;
         })}
       </div>
-      <div className="sidebar-foot"><b>2026년 09월 발주계획</b><br />로컬 프로토타입 · Phase 1<br />상세 계산·저장은 다음 단계에서 연결됩니다.</div>
+      <div className="sidebar-account">{accountMenu.map((item) => { const Icon = icons[item.icon]; return <Link key={item.id} href={item.href} className={`nav-button ${pathname === item.href ? 'active' : ''}`}><span className="nav-number"><Icon size={13} /></span><span>{item.label}</span></Link>; })}</div>
+      <div className="sidebar-foot"><b>월간 발주계획</b><br />운영 계정으로 접속 중입니다.</div>
     </aside>
   );
 }

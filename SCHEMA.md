@@ -162,3 +162,24 @@ Project Settings → API → Data API → Exposed schemas
 이 설정이 없으면 조회 결과가 **에러 없이 빈 배열**로 나옵니다.
 
 조회 함수는 `lib/scm.ts` 에 모읍니다. 화면에서 supabase 를 직접 부르지 않습니다.
+
+## STEP 3 확장 객체
+
+### raw 입력 테이블
+
+`business_event`, `sales_order`, `item_substitute`가 파일/API 적재 확장용으로 추가된다. 기존 raw 입력 테이블에는 `batch_id`, `source_type`, `loaded_at`, `source_record_id` 추적 컬럼을 nullable/default 방식으로 확장한다. raw는 애플리케이션에서 직접 읽거나 수정하지 않는다.
+
+### core 기준·설정 테이블
+
+| 객체 | 역할 |
+|---|---|
+| `policy_config` | service level, review period, safety buffer 등 운영 정책값 |
+| `outlier_rule` | 프로젝트성 수요, 반품, 중복 등 학습 제외 규칙 |
+| `item_policy` | 품목별 MOQ, pack size, grade, service level |
+| `forecast_setting` | train/test 날짜 경계와 DAY/WEEK/MONTH granularity |
+
+### 학습/검증 view
+
+`core.v_train_demand`는 활성 forecast setting의 train 기간만, `core.v_test_actual`은 test 기간 Actual만 반환한다. `analytics.v_data_coverage`는 전체 원본 기간과 train/test 기간의 충족·격리 상태를 점검한다. Forecast와 Demand Profile은 train view를, Backtest scoring은 test view를 사용해야 하며 코드에 날짜를 고정하지 않는다.
+
+관리자 검증 화면은 `/admin/forecast-settings`이며, 개인 계정 관리·로그아웃 화면은 `/account`이다.

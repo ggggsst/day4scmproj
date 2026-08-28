@@ -1,6 +1,6 @@
 export type UserRole = 'USER' | 'ADMIN';
 export type WorkflowStepId = 'dashboard' | 'demand' | 'supply' | 'master' | 'calculation' | 'report';
-export type MenuIcon = 'overview' | 'demand' | 'supply' | 'master' | 'calculation' | 'report' | 'leadtime' | 'stockout' | 'settings';
+export type MenuIcon = 'overview' | 'demand' | 'supply' | 'master' | 'calculation' | 'report' | 'leadtime' | 'stockout' | 'settings' | 'account';
 
 export type MenuItem = {
   id: string;
@@ -23,9 +23,11 @@ export const USER_MENU: MenuItem[] = [
   { id: 'report', label: '보고자료', short: '보고', kicker: 'EXECUTIVE REPORT', href: '/', icon: 'report', kind: 'workflow', role: 'USER', step: 'report' },
   { id: 'leadtime', label: '리드타임 분석', href: '/analysis/leadtime', icon: 'leadtime', kind: 'analysis', role: 'USER' },
   { id: 'stockout', label: '재고 소진 위험', href: '/analysis/stockout', icon: 'stockout', kind: 'analysis', role: 'USER' },
+  { id: 'account', label: '계정 관리', href: '/account', icon: 'account', kind: 'admin', role: 'USER' },
 ];
 
 export const ADMIN_MENU: MenuItem[] = [
   { id: 'admin-settings', label: '시스템 설정', href: '/admin/settings', icon: 'settings', kind: 'admin', role: 'ADMIN' },
   { id: 'admin-users', label: '사용자 관리', href: '/admin/users', icon: 'settings', kind: 'admin', role: 'ADMIN' },
+  { id: 'admin-forecast-settings', label: 'Forecast 설정 검증', href: '/admin/forecast-settings', icon: 'settings', kind: 'admin', role: 'ADMIN' },
 ];
