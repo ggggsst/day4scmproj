@@ -32,4 +32,6 @@ export const ADMIN_MENU: MenuItem[] = [
   { id: 'admin-users', label: '사용자 관리', href: '/admin/users', icon: 'settings', kind: 'admin', role: 'ADMIN' },
   { id: 'admin-forecast-settings', label: 'Forecast 설정 검증', href: '/admin/forecast-settings', icon: 'settings', kind: 'admin', role: 'ADMIN' },
   { id: 'admin-data-management', label: '데이터 관리', href: '/admin/data-management', icon: 'settings', kind: 'admin', role: 'ADMIN' },
+  { id: 'admin-forecast-models', label: 'Forecast 모델', href: '/admin/forecast-models', icon: 'settings', kind: 'admin', role: 'ADMIN' },
+  { id: 'admin-forecast-runs', label: 'Forecast 실행 이력', href: '/admin/forecast-runs', icon: 'settings', kind: 'admin', role: 'ADMIN' },
 ];

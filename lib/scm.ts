@@ -19,6 +19,12 @@ import {
   normalizeDemandProfileKpi,
   type DemandProfile,
   type DemandProfileKpi,
+  normalizeForecastModel,
+  normalizeForecastRun,
+  normalizeForecastResult,
+  type ForecastModel,
+  type ForecastRun,
+  type ForecastResult,
 } from './scm-model';
 
 export async function getLeadtimeGap(): Promise<{ rows: LeadtimeGap[]; error: string | null }> {
@@ -93,4 +99,31 @@ export async function getDemandProfileData(): Promise<{ rows: DemandProfile[]; k
     if (firstError) return { rows: [], kpi: null, error: firstError.message };
     return { rows: (profiles.data ?? []).map((row) => normalizeDemandProfile(row as Record<string, unknown>)), kpi: kpi.data ? normalizeDemandProfileKpi(kpi.data as Record<string, unknown>) : null, error: null };
   } catch (error) { return { rows: [], kpi: null, error: error instanceof Error ? error.message : 'Supabase 조회에 실패했습니다.' }; }
+}
+
+export async function getForecastModels(): Promise<{ rows: ForecastModel[]; error: string | null }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.schema('analytics').from('v_model_config').select('*').order('model_id');
+    if (error) return { rows: [], error: error.message };
+    return { rows: (data ?? []).map((row) => normalizeForecastModel(row as Record<string, unknown>)), error: null };
+  } catch (error) { return { rows: [], error: error instanceof Error ? error.message : 'Forecast 모델 조회에 실패했습니다.' }; }
+}
+
+export async function getForecastRuns(): Promise<{ rows: ForecastRun[]; error: string | null }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.schema('analytics').from('v_forecast_run').select('*').order('started_at', { ascending: false });
+    if (error) return { rows: [], error: error.message };
+    return { rows: (data ?? []).map((row) => normalizeForecastRun(row as Record<string, unknown>)), error: null };
+  } catch (error) { return { rows: [], error: error instanceof Error ? error.message : 'Forecast 실행 이력 조회에 실패했습니다.' }; }
+}
+
+export async function getForecastResults(runId: string): Promise<{ rows: ForecastResult[]; error: string | null }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.schema('analytics').from('v_forecast_result').select('*').eq('run_id', runId).order('item_id').order('period');
+    if (error) return { rows: [], error: error.message };
+    return { rows: (data ?? []).map((row) => normalizeForecastResult(row as Record<string, unknown>)), error: null };
+  } catch (error) { return { rows: [], error: error instanceof Error ? error.message : 'Forecast 결과 조회에 실패했습니다.' }; }
 }
