@@ -163,6 +163,22 @@ Project Settings → API → Data API → Exposed schemas
 
 조회 함수는 `lib/scm.ts` 에 모읍니다. 화면에서 supabase 를 직접 부르지 않습니다.
 
+## STEP 4 Import Pipeline
+
+관리자 데이터 관리는 `/admin/data-management`에서 수행한다. 파일은 서버에서 CSV/XLSX로 파싱한 후 `core.import_staging`에 보관하고, `core.validation_error`에 행별 결과를 저장한다. 사용자가 승인한 오류 없는 batch만 `core.import_batch` RPC를 통해 raw에 기록한다.
+
+| 객체 | 역할 |
+|---|---|
+| `core.upload_batch` | 파일명, 타입, mode, 행 수, 상태, 업로드 사용자와 stale 상태 |
+| `core.import_staging` | 승인 전 원본 행과 매핑 행 |
+| `core.column_mapping` | 파일 컬럼과 표준 컬럼의 재사용 매핑 |
+| `core.validation_error` | ERROR/WARNING 행의 코드·메시지·원본값 |
+| `core.v_supplier_master` | import 검증용 공급처 master view |
+| `core.import_batch()` | 검증 완료 batch의 RAW 적재 |
+| `core.rollback_batch()` | 동일 batch_id의 RAW 행만 rollback |
+
+`append`는 새 행을 추가하고, `upsert`는 source key 기반 import 계약으로 전달된다. `replace`와 rollback은 ADMIN 전용이며 replace batch는 기존 데이터의 완전 복구를 보장하지 않아 rollback이 제한된다. raw schema는 브라우저 역할에 노출하지 않는다.
+
 ## STEP 3 확장 객체
 
 ### raw 입력 테이블
