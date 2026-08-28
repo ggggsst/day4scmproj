@@ -15,6 +15,10 @@ import {
   type PolicyConfig,
   type OutlierRule,
   type ItemPolicy,
+  normalizeDemandProfile,
+  normalizeDemandProfileKpi,
+  type DemandProfile,
+  type DemandProfileKpi,
 } from './scm-model';
 
 export async function getLeadtimeGap(): Promise<{ rows: LeadtimeGap[]; error: string | null }> {
@@ -76,4 +80,17 @@ export async function getForecastSettingsData() {
   } catch (error) {
     return { coverage: null, settings: [], policies: [], rules: [], itemPolicies: [], error: error instanceof Error ? error.message : 'Supabase 조회에 실패했습니다.' };
   }
+}
+
+export async function getDemandProfileData(): Promise<{ rows: DemandProfile[]; kpi: DemandProfileKpi | null; error: string | null }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const [profiles, kpi] = await Promise.all([
+      supabase.schema('analytics').from('v_sku_demand_profile').select('*').order('item_id'),
+      supabase.schema('analytics').from('v_demand_profile_kpi').select('*').maybeSingle(),
+    ]);
+    const firstError = profiles.error ?? kpi.error;
+    if (firstError) return { rows: [], kpi: null, error: firstError.message };
+    return { rows: (profiles.data ?? []).map((row) => normalizeDemandProfile(row as Record<string, unknown>)), kpi: kpi.data ? normalizeDemandProfileKpi(kpi.data as Record<string, unknown>) : null, error: null };
+  } catch (error) { return { rows: [], kpi: null, error: error instanceof Error ? error.message : 'Supabase 조회에 실패했습니다.' }; }
 }

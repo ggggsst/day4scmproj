@@ -23,6 +23,7 @@ export const USER_MENU: MenuItem[] = [
   { id: 'report', label: '보고자료', short: '보고', kicker: 'EXECUTIVE REPORT', href: '/', icon: 'report', kind: 'workflow', role: 'USER', step: 'report' },
   { id: 'leadtime', label: '리드타임 분석', href: '/analysis/leadtime', icon: 'leadtime', kind: 'analysis', role: 'USER' },
   { id: 'stockout', label: '재고 소진 위험', href: '/analysis/stockout', icon: 'stockout', kind: 'analysis', role: 'USER' },
+  { id: 'demand-profile', label: 'SKU 수요 패턴', href: '/analysis/demand-profile', icon: 'demand', kind: 'analysis', role: 'USER' },
   { id: 'account', label: '계정 관리', href: '/account', icon: 'account', kind: 'admin', role: 'USER' },
 ];
 

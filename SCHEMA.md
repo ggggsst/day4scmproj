@@ -199,3 +199,10 @@ Project Settings → API → Data API → Exposed schemas
 `core.v_train_demand`는 활성 forecast setting의 train 기간만, `core.v_test_actual`은 test 기간 Actual만 반환한다. `analytics.v_data_coverage`는 전체 원본 기간과 train/test 기간의 충족·격리 상태를 점검한다. Forecast와 Demand Profile은 train view를, Backtest scoring은 test view를 사용해야 하며 코드에 날짜를 고정하지 않는다.
 
 관리자 검증 화면은 `/admin/forecast-settings`이며, 개인 계정 관리·로그아웃 화면은 `/account`이다.
+## STEP 5 SKU Demand Profile
+
+`supabase/migrations/20260828000400_create_demand_profile.sql`은 활성 `core.forecast_setting`의 학습 경계를 기준으로 기간 Grid를 생성한다. `core.v_train_period_grid`가 빈 기간을 명시적으로 0으로 만들고 원본 행 존재 여부를 `source_row_count`, `is_grid_zero`로 구분한다. `core.v_sku_demand_period`는 SKU별 기간 순번을 추가한다.
+
+`analytics.v_sku_demand_profile`은 ADI, CV, CV², 무수요율, 추세, 최근 3기간 변화율, 최조 기간 기준의 peak, 수요 유형, 계절성 판정 가능 여부를 SQL로 계산한다. 수요 유형은 `SMOOTH`, `INTERMITTENT`, `ERRATIC`, `LUMPY` 코드만 사용한다. 24기간 미만의 계절성은 `null + INSUFFICIENT_PERIODS`로 반환한다. `analytics.v_demand_profile_kpi`는 유형별 SKU 수와 Croston 후보 수를 제공한다.
+
+화면 `/analysis/demand-profile`은 `lib/scm.ts`에서 analytics view를 조회하고 `EmptyValue`와 공통 `Badge`를 사용한다. 필터는 저장된 결과의 표시 범위만 줄이며 React에서 ADI·CV·추세를 재계산하지 않는다.
