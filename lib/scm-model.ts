@@ -61,6 +61,9 @@ export type ForecastSetting = {
 export type PolicyConfig = { policyKey: string; policyValue: unknown; valueType: string; description: string | null; active: boolean };
 export type OutlierRule = { ruleCode: string; ruleName: string; conditionType: string; conditionValue: unknown; excludeFromTraining: boolean; active: boolean };
 export type ItemPolicy = { itemId: string; moq: number | null; packSize: number | null; itemGrade: string | null; serviceLevel: number | null };
+export type DemandType = 'SMOOTH' | 'INTERMITTENT' | 'ERRATIC' | 'LUMPY';
+export type DemandProfile = { itemId: string; itemName: string | null; nPeriods: number; nNonzeroPeriods: number; adi: number | null; cv: number | null; cvSquared: number | null; zeroDemandRate: number | null; trend: number | null; recentChangeRate: number | null; peakPeriod: string | null; demandType: DemandType | null; seasonality: string | null; reasonCode: string | null; stability: string | null };
+export type DemandProfileKpi = { totalItems: number; smooth: number; intermittent: number; erratic: number; lumpy: number; crostonNeeded: number; calculationUnavailable: number };
 
 function value(row: Record<string, unknown>, keys: string[]) {
   for (const key of keys) {
@@ -168,4 +171,14 @@ export function normalizeOutlierRule(row: Record<string, unknown>): OutlierRule 
 
 export function normalizeItemPolicy(row: Record<string, unknown>): ItemPolicy {
   return { itemId: String(value(row, ['item_id']) ?? ''), moq: numberValue(row, ['moq']), packSize: numberValue(row, ['pack_size']), itemGrade: value(row, ['item_grade']) as string | null, serviceLevel: numberValue(row, ['service_level']) };
+}
+
+function normalizeDemandType(value: unknown): DemandType | null { return value === 'SMOOTH' || value === 'INTERMITTENT' || value === 'ERRATIC' || value === 'LUMPY' ? value : null; }
+
+export function normalizeDemandProfile(row: Record<string, unknown>): DemandProfile {
+  return { itemId: String(value(row, ['item_id']) ?? ''), itemName: value(row, ['item_name']) as string | null, nPeriods: numberValue(row, ['n_periods']) ?? 0, nNonzeroPeriods: numberValue(row, ['n_nonzero_periods']) ?? 0, adi: numberValue(row, ['adi']), cv: numberValue(row, ['cv']), cvSquared: numberValue(row, ['cv_squared']), zeroDemandRate: numberValue(row, ['zero_demand_rate']), trend: numberValue(row, ['trend']), recentChangeRate: numberValue(row, ['recent_change_rate']), peakPeriod: value(row, ['peak_period']) as string | null, demandType: normalizeDemandType(value(row, ['demand_type'])), seasonality: value(row, ['seasonality']) as string | null, reasonCode: value(row, ['reason_code']) as string | null, stability: value(row, ['stability']) as string | null };
+}
+
+export function normalizeDemandProfileKpi(row: Record<string, unknown>): DemandProfileKpi {
+  return { totalItems: numberValue(row, ['total_items']) ?? 0, smooth: numberValue(row, ['n_smooth']) ?? 0, intermittent: numberValue(row, ['n_intermittent']) ?? 0, erratic: numberValue(row, ['n_erratic']) ?? 0, lumpy: numberValue(row, ['n_lumpy']) ?? 0, crostonNeeded: numberValue(row, ['n_croston_needed']) ?? 0, calculationUnavailable: numberValue(row, ['n_calculation_unavailable']) ?? 0 };
 }
