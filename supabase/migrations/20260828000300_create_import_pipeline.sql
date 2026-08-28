@@ -87,7 +87,7 @@ create policy validation_error_insert on core.validation_error for insert to aut
 
 create or replace function core.import_batch(p_batch_id uuid, p_import_type text, p_mode text, p_rows jsonb)
 returns integer language plpgsql security definer set search_path = pg_catalog, public, core, raw as $$
-declare row jsonb; inserted_count integer := 0; source_key text; target_table text;
+declare row jsonb; inserted_count integer := 0; row_number integer := 0; target_table text;
 begin
   if not core.is_active_user() then raise exception '활성 사용자만 import할 수 있습니다.' using errcode = '42501'; end if;
   if p_mode = 'replace' and not core.is_admin() then raise exception 'replace는 관리자만 실행할 수 있습니다.' using errcode = '42501'; end if;
@@ -95,7 +95,8 @@ begin
   target_table := case p_import_type when 'business_event' then 'business_event' when 'sales_order' then 'sales_order' when 'item_substitute' then 'item_substitute' when 'usage_history' then 'usage_history' when 'inventory' then 'inventory' when 'item_master' then 'item_master' when 'supplier_master' then 'supplier_master' when 'purchase_order' then 'purchase_order' when 'goods_receipt' then 'goods_receipt' else null end;
   if target_table is null then raise exception '지원하지 않는 import type입니다.' using errcode = '22023'; end if;
   for row in select value from jsonb_array_elements(p_rows) loop
-    row := jsonb_set(jsonb_set(jsonb_set(row, '{batch_id}', to_jsonb(p_batch_id)), '{source_type}', '"FILE_UPLOAD"'::jsonb), '{source_record_id}', to_jsonb(coalesce(row->>'source_record_id', row->>'usage_id', row->>'sales_order_id', row->>'event_id')));
+    row_number := row_number + 1;
+    row := jsonb_set(jsonb_set(jsonb_set(row, '{batch_id}', to_jsonb(p_batch_id)), '{source_type}', '"FILE_UPLOAD"'::jsonb), '{source_record_id}', to_jsonb(coalesce(row->>'source_record_id', row->>'usage_id', row->>'sales_order_id', row->>'event_id', p_batch_id::text || ':' || row_number)));
     execute format('insert into raw.%I select (jsonb_populate_record(null::raw.%I, $1)).*', target_table, target_table) using row;
     inserted_count := inserted_count + 1;
   end loop;

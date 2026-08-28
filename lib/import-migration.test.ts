@@ -16,3 +16,8 @@ test('rollback is scoped by batch and replace is explicitly limited', () => {
   assert.match(sql, /where batch_id = \$1/i);
   assert.match(sql, /replace batch는 완전 rollback을 지원하지 않습니다/i);
 });
+
+test('every imported row receives a deterministic source record id', () => {
+  assert.match(sql, /row_number integer := 0/i);
+  assert.match(sql, /p_batch_id::text \|\| ':' \|\| row_number/i);
+});
