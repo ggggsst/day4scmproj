@@ -213,3 +213,12 @@ Project Settings → API → Data API → Exposed schemas
 `core.run_baseline_forecast()`는 ADMIN만 실행할 수 있으며 활성 setting과 enabled 모델을 읽고, `core.model_version`에 모델 정의 snapshot을 저장한 뒤 `core.forecast_run`을 RUNNING으로 만들고 `core.forecast_result`를 적재한다. 정상 실행은 SUCCESS, 예외는 FAILED와 message로 남긴다. 결과의 `basis`가 `INSUFFICIENT_HISTORY`이면 point와 interval을 null로 유지한다.
 
 화면은 `/admin/forecast-models`와 `/admin/forecast-runs`이며 core 테이블을 직접 읽지 않고 `analytics.v_model_config`, `v_forecast_run`, `v_forecast_result`, `v_forecast_run_kpi`를 조회한다. `analytics.v_forecast_run.is_stale`는 현재 원천 loaded_at 최대값이 실행 snapshot보다 큰지로 판정한다. STEP 7은 `run_id`를 기준으로 저장된 모델별 결과를 비교·선택하며 화면에서 Forecast를 재실행하지 않는다.
+## STEP 7 Backtest · Champion · Model Comparison
+
+Backtest는 `core.forecast_result`와 `core.v_test_actual`만 조인한다. Forecast를 재실행하거나 raw usage를 scoring 기준으로 직접 읽지 않는다. `core.backtest_run`은 Forecast 실행 이력과 분리된 검증 실행 이력이다.
+
+`core.model_performance`는 SKU·모델별 WAPE, MAPE, Bias, RMSE, MAE, baseline improvement, rank와 calculation status/reason code를 저장한다. Bias는 `Forecast - Actual`이며 양수는 과대예측, 음수는 과소예측이다. WAPE의 분모는 유효 paired row의 actual 절대값 합이고 0이면 계산 불가다. MAPE는 actual이 0인 기간을 제외하며 유효한 비영(非零) actual이 없으면 계산 불가다.
+
+활성 `forecast_setting.champion_metric`을 오름차순으로 사용해 rank를 산출한다. 동점은 absolute Bias, RMSE, model_id 순으로 해소한다. `core.champion_model`은 AUTO 선정 시 후보 전체 성능 JSON과 선정 근거를 함께 저장한다. ADMIN 수동 지정은 reason 필수이며 기존 이력을 삭제하지 않고 `core.audit_log`에 before/after를 기록한다.
+
+`/analysis/model-comparison`은 저장된 결과와 성능을 조회해 Actual·P50·P80·P90을 비교한다. 모델 토글은 표시만 바꾸며 Forecast나 Backtest를 실행하지 않는다. `/admin/backtest`는 ADMIN만 실행·수동 Champion 지정을 할 수 있다.

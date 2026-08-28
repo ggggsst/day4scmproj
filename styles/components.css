@@ -86,6 +86,14 @@
 .analysis-filter { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; padding: 16px 0; }
 .analysis-filter label { display: grid; gap: 6px; color: var(--color-text-muted); font-size: 12px; }
 .analysis-filter select, .analysis-filter input { min-height: 38px; padding: 0 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); color: var(--color-text); }
+.model-toggles { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 0; color: var(--color-text-muted); font-size: 13px; }
+.model-toggles label { display: inline-flex; gap: 5px; align-items: center; color: var(--color-text); }
+.forecast-chart { overflow-x: auto; margin: 12px 0 20px; padding: 14px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface-subtle); }
+.forecast-chart-legend, .forecast-chart-values { display: flex; flex-wrap: wrap; gap: 12px; }
+.forecast-chart-legend { margin-bottom: 12px; font-size: 12px; font-weight: 600; }
+.chart-actual { color: var(--color-text); }.chart-model { color: var(--color-primary); }
+.forecast-chart-series { min-width: 680px; }.forecast-chart-period { display: grid; grid-template-columns: 110px 1fr; gap: 10px; padding: 9px 0; border-top: 1px solid var(--color-border); font-size: 12px; }
+.forecast-chart-values span { display: grid; gap: 2px; min-width: 120px; }.forecast-chart-values small { color: var(--color-text-muted); font-size: 10px; }
 
 .empty-value {
   color: var(--color-on-surface-variant);

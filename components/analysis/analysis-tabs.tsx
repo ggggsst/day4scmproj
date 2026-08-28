@@ -7,6 +7,7 @@ const tabs = [
   { href: '/analysis/leadtime', label: '리드타임 격차' },
   { href: '/analysis/stockout', label: '재고 소진 위험' },
   { href: '/analysis/demand-profile', label: 'SKU 수요 패턴' },
+  { href: '/analysis/model-comparison', label: '모델 비교' },
 ] as const;
 
 export default function AnalysisTabs() {

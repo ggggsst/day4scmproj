@@ -202,3 +202,21 @@ export function normalizeForecastRun(row: Record<string, unknown>): ForecastRun 
 export function normalizeForecastResult(row: Record<string, unknown>): ForecastResult {
   return { runId: String(value(row, ['run_id']) ?? ''), modelId: String(value(row, ['model_id']) ?? ''), itemId: String(value(row, ['item_id']) ?? ''), period: String(value(row, ['period']) ?? ''), modelVersion: String(value(row, ['model_version']) ?? ''), predictedQty: numberValue(row, ['predicted_qty']), p50: numberValue(row, ['p50']), p80: numberValue(row, ['p80']), p90: numberValue(row, ['p90']), sigma: numberValue(row, ['sigma']), basis: String(value(row, ['basis']) ?? 'CALCULATION_UNAVAILABLE') };
 }
+
+export type ModelPerformance = { runId: string; modelId: string; modelVersion: string; itemId: string; nPeriods: number; wape: number | null; mape: number | null; bias: number | null; rmse: number | null; mae: number | null; baselineImprovement: number | null; rank: number | null; calculationStatus: string; reasonCode: string | null };
+export type ChampionModel = { itemId: string; championModelId: string | null; modelVersion: string | null; championMetric: string; championMetricValue: number | null; wape: number | null; mape: number | null; bias: number | null; rmse: number | null; candidatePerformance: unknown[]; selectionReason: string | null; selectionMethod: 'AUTO' | 'MANUAL'; selectedAt: string | null };
+export type ModelComparisonRow = ForecastResult & { actualQty: number | null; actualDate: string | null };
+
+export function normalizeModelPerformance(row: Record<string, unknown>): ModelPerformance {
+  const rank = numberValue(row, ['rank']);
+  return { runId: String(value(row, ['run_id']) ?? ''), modelId: String(value(row, ['model_id']) ?? ''), modelVersion: String(value(row, ['model_version']) ?? ''), itemId: String(value(row, ['item_id']) ?? ''), nPeriods: numberValue(row, ['n_periods']) ?? 0, wape: numberValue(row, ['wape']), mape: numberValue(row, ['mape']), bias: numberValue(row, ['bias']), rmse: numberValue(row, ['rmse']), mae: numberValue(row, ['mae']), baselineImprovement: numberValue(row, ['baseline_improvement']), rank: rank === null ? null : Math.trunc(rank), calculationStatus: String(value(row, ['calculation_status']) ?? 'CALCULATION_UNAVAILABLE'), reasonCode: value(row, ['reason_code']) as string | null };
+}
+
+export function normalizeChampionModel(row: Record<string, unknown>): ChampionModel {
+  const method = value(row, ['selection_method']);
+  return { itemId: String(value(row, ['item_id']) ?? ''), championModelId: value(row, ['champion_model_id']) as string | null, modelVersion: value(row, ['model_version']) as string | null, championMetric: String(value(row, ['champion_metric']) ?? ''), championMetricValue: numberValue(row, ['champion_metric_value']), wape: numberValue(row, ['wape']), mape: numberValue(row, ['mape']), bias: numberValue(row, ['bias']), rmse: numberValue(row, ['rmse']), candidatePerformance: Array.isArray(row.candidate_performance) ? row.candidate_performance : [], selectionReason: value(row, ['selection_reason']) as string | null, selectionMethod: method === 'MANUAL' ? 'MANUAL' : 'AUTO', selectedAt: value(row, ['selected_at']) as string | null };
+}
+
+export function normalizeModelComparison(row: Record<string, unknown>): ModelComparisonRow {
+  return { ...normalizeForecastResult(row), actualQty: numberValue(row, ['actual_qty']), actualDate: value(row, ['actual_date']) as string | null };
+}

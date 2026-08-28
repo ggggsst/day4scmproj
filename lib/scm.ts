@@ -25,6 +25,12 @@ import {
   type ForecastModel,
   type ForecastRun,
   type ForecastResult,
+  normalizeModelPerformance,
+  normalizeChampionModel,
+  normalizeModelComparison,
+  type ModelPerformance,
+  type ChampionModel,
+  type ModelComparisonRow,
 } from './scm-model';
 
 export async function getLeadtimeGap(): Promise<{ rows: LeadtimeGap[]; error: string | null }> {
@@ -126,4 +132,37 @@ export async function getForecastResults(runId: string): Promise<{ rows: Forecas
     if (error) return { rows: [], error: error.message };
     return { rows: (data ?? []).map((row) => normalizeForecastResult(row as Record<string, unknown>)), error: null };
   } catch (error) { return { rows: [], error: error instanceof Error ? error.message : 'Forecast 결과 조회에 실패했습니다.' }; }
+}
+
+export async function getModelPerformance(runId?: string): Promise<{ rows: ModelPerformance[]; error: string | null }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    let query = supabase.schema('analytics').from('v_model_performance').select('*').order('item_id').order('rank');
+    if (runId) query = query.eq('run_id', runId);
+    const { data, error } = await query;
+    if (error) return { rows: [], error: error.message };
+    return { rows: (data ?? []).map((row) => normalizeModelPerformance(row as Record<string, unknown>)), error: null };
+  } catch (error) { return { rows: [], error: error instanceof Error ? error.message : '모델 성능 조회에 실패했습니다.' }; }
+}
+
+export async function getChampions(): Promise<{ rows: ChampionModel[]; error: string | null }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.schema('analytics').from('v_champion_model').select('*').order('item_id');
+    if (error) return { rows: [], error: error.message };
+    return { rows: (data ?? []).map((row) => normalizeChampionModel(row as Record<string, unknown>)), error: null };
+  } catch (error) { return { rows: [], error: error instanceof Error ? error.message : 'Champion 조회에 실패했습니다.' }; }
+}
+
+export async function getModelComparison(runId?: string): Promise<{ rows: ModelComparisonRow[]; performance: ModelPerformance[]; champions: ChampionModel[]; error: string | null }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    let comparison = supabase.schema('analytics').from('v_model_comparison').select('*').order('item_id').order('period');
+    let performance = supabase.schema('analytics').from('v_model_performance').select('*').order('item_id').order('rank');
+    if (runId) { comparison = comparison.eq('run_id', runId); performance = performance.eq('run_id', runId); }
+    const [rows, scores, champions] = await Promise.all([comparison, performance, supabase.schema('analytics').from('v_champion_model').select('*').order('item_id')]);
+    const firstError = rows.error ?? scores.error ?? champions.error;
+    if (firstError) return { rows: [], performance: [], champions: [], error: firstError.message };
+    return { rows: (rows.data ?? []).map((row) => normalizeModelComparison(row as Record<string, unknown>)), performance: (scores.data ?? []).map((row) => normalizeModelPerformance(row as Record<string, unknown>)), champions: (champions.data ?? []).map((row) => normalizeChampionModel(row as Record<string, unknown>)), error: null };
+  } catch (error) { return { rows: [], performance: [], champions: [], error: error instanceof Error ? error.message : '모델 비교 조회에 실패했습니다.' }; }
 }

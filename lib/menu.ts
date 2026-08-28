@@ -24,6 +24,7 @@ export const USER_MENU: MenuItem[] = [
   { id: 'leadtime', label: '리드타임 분석', href: '/analysis/leadtime', icon: 'leadtime', kind: 'analysis', role: 'USER' },
   { id: 'stockout', label: '재고 소진 위험', href: '/analysis/stockout', icon: 'stockout', kind: 'analysis', role: 'USER' },
   { id: 'demand-profile', label: 'SKU 수요 패턴', href: '/analysis/demand-profile', icon: 'demand', kind: 'analysis', role: 'USER' },
+  { id: 'model-comparison', label: '모델 비교', href: '/analysis/model-comparison', icon: 'demand', kind: 'analysis', role: 'USER' },
   { id: 'account', label: '계정 관리', href: '/account', icon: 'account', kind: 'admin', role: 'USER' },
 ];
 
@@ -34,4 +35,5 @@ export const ADMIN_MENU: MenuItem[] = [
   { id: 'admin-data-management', label: '데이터 관리', href: '/admin/data-management', icon: 'settings', kind: 'admin', role: 'ADMIN' },
   { id: 'admin-forecast-models', label: 'Forecast 모델', href: '/admin/forecast-models', icon: 'settings', kind: 'admin', role: 'ADMIN' },
   { id: 'admin-forecast-runs', label: 'Forecast 실행 이력', href: '/admin/forecast-runs', icon: 'settings', kind: 'admin', role: 'ADMIN' },
+  { id: 'admin-backtest', label: 'Backtest 관리', href: '/admin/backtest', icon: 'settings', kind: 'admin', role: 'ADMIN' },
 ];

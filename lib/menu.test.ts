@@ -5,7 +5,7 @@ import { ADMIN_MENU, USER_MENU } from './menu.ts';
 test('user menu exposes both implemented analysis routes', () => {
   assert.deepEqual(
     USER_MENU.filter((item) => item.kind === 'analysis').map((item) => item.href),
-    ['/analysis/leadtime', '/analysis/stockout', '/analysis/demand-profile']
+    ['/analysis/leadtime', '/analysis/stockout', '/analysis/demand-profile', '/analysis/model-comparison']
   );
 });
 
