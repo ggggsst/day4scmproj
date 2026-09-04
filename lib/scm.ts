@@ -31,6 +31,16 @@ import {
   type ModelPerformance,
   type ChampionModel,
   type ModelComparisonRow,
+  normalizeShipmentTrend,
+  normalizeDemandProfileRt,
+  normalizeOlAccuracy,
+  normalizeOlAccuracyFy,
+  normalizeBomRequirement,
+  type ShipmentTrend,
+  type DemandProfileRt,
+  type OlAccuracy,
+  type OlAccuracyFy,
+  type BomRequirement,
 } from './scm-model';
 
 export async function getLeadtimeGap(): Promise<{ rows: LeadtimeGap[]; error: string | null }> {
@@ -165,4 +175,47 @@ export async function getModelComparison(runId?: string): Promise<{ rows: ModelC
     if (firstError) return { rows: [], performance: [], champions: [], error: firstError.message };
     return { rows: (rows.data ?? []).map((row) => normalizeModelComparison(row as Record<string, unknown>)), performance: (scores.data ?? []).map((row) => normalizeModelPerformance(row as Record<string, unknown>)), champions: (champions.data ?? []).map((row) => normalizeChampionModel(row as Record<string, unknown>)), error: null };
   } catch (error) { return { rows: [], performance: [], champions: [], error: error instanceof Error ? error.message : '모델 비교 조회에 실패했습니다.' }; }
+}
+
+export async function getShipmentTrend(itemCode?: string): Promise<{ rows: ShipmentTrend[]; error: string | null }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    let query = supabase.schema('analytics').from('v_shipment_trend').select('*').order('item_code');
+    if (itemCode) query = query.eq('item_code', itemCode);
+    const { data, error } = await query;
+    if (error) return { rows: [], error: error.message };
+    return { rows: (data ?? []).map((row) => normalizeShipmentTrend(row as Record<string, unknown>)), error: null };
+  } catch (error) { return { rows: [], error: error instanceof Error ? error.message : '출고 추이 조회에 실패했습니다.' }; }
+}
+
+export async function getDemandProfileRt(itemCode?: string): Promise<{ rows: DemandProfileRt[]; error: string | null }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    let query = supabase.schema('analytics').from('v_item_demand_profile').select('*').order('item_code');
+    if (itemCode) query = query.eq('item_code', itemCode);
+    const { data, error } = await query;
+    if (error) return { rows: [], error: error.message };
+    return { rows: (data ?? []).map((row) => normalizeDemandProfileRt(row as Record<string, unknown>)), error: null };
+  } catch (error) { return { rows: [], error: error instanceof Error ? error.message : '수요 프로파일 조회에 실패했습니다.' }; }
+}
+
+export async function getOlAccuracy(modelBase?: string): Promise<{ rows: OlAccuracy[]; fyRows: OlAccuracyFy[]; error: string | null }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    let rowsQuery = supabase.schema('analytics').from('v_ol_accuracy').select('*').order('model_base').order('fy_sheet');
+    if (modelBase) rowsQuery = rowsQuery.eq('model_base', modelBase);
+    const [rows, fyRows] = await Promise.all([rowsQuery, supabase.schema('analytics').from('v_ol_accuracy_fy').select('*').order('fy_sheet')]);
+    const firstError = rows.error ?? fyRows.error;
+    if (firstError) return { rows: [], fyRows: [], error: firstError.message };
+    return { rows: (rows.data ?? []).map((row) => normalizeOlAccuracy(row as Record<string, unknown>)), fyRows: (fyRows.data ?? []).map((row) => normalizeOlAccuracyFy(row as Record<string, unknown>)), error: null };
+  } catch (error) { return { rows: [], fyRows: [], error: error instanceof Error ? error.message : 'OL 정확도 조회에 실패했습니다.' }; }
+}
+
+export async function getBomRequirement(modelBase: string): Promise<{ rows: BomRequirement[]; error: string | null }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase.schema('analytics').from('v_bom_requirement_x').select('*').eq('model_base', modelBase).order('part_role').order('item_code');
+    if (error) return { rows: [], error: error.message };
+    return { rows: (data ?? []).map((row) => normalizeBomRequirement(row as Record<string, unknown>)), error: null };
+  } catch (error) { return { rows: [], error: error instanceof Error ? error.message : 'BOM 요구량 조회에 실패했습니다.' }; }
 }

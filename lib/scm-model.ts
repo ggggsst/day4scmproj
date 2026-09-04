@@ -207,6 +207,84 @@ export type ModelPerformance = { runId: string; modelId: string; modelVersion: s
 export type ChampionModel = { itemId: string; championModelId: string | null; modelVersion: string | null; championMetric: string; championMetricValue: number | null; wape: number | null; mape: number | null; bias: number | null; rmse: number | null; candidatePerformance: unknown[]; selectionReason: string | null; selectionMethod: 'AUTO' | 'MANUAL'; selectedAt: string | null };
 export type ModelComparisonRow = ForecastResult & { actualQty: number | null; actualDate: string | null };
 
+export type ShipmentTrend = {
+  itemCode: string;
+  description: string | null;
+  family: string | null;
+  itemType: string | null;
+  dataAsOf: string | null;
+  monthCount: number;
+  firstMonth: string | null;
+  lastMonth: string | null;
+  monthsSinceLast: number | null;
+  spanMonths: number | null;
+  totalQty: number | null;
+  latestQty: number | null;
+  average3m: number | null;
+  average6m: number | null;
+  average12m: number | null;
+  trend3mVs12m: number | null;
+  reasonCode: string | null;
+};
+
+export type DemandProfileRt = {
+  itemCode: string;
+  description: string | null;
+  family: string | null;
+  itemType: string | null;
+  dataAsOf: string | null;
+  firstMonth: string | null;
+  lastMonth: string | null;
+  periodCount: number;
+  nonzeroCount: number;
+  meanNonzeroQty: number | null;
+  adi: number | null;
+  zeroDemandRate: number | null;
+  cvSquared: number | null;
+  demandType: DemandType | null;
+  reasonCode: string | null;
+};
+
+export type OlAccuracy = {
+  modelBase: string;
+  fiscalYear: string | null;
+  business: string | null;
+  rowCount: number;
+  firstMonth: string | null;
+  lastMonth: string | null;
+  totalActual: number | null;
+  scoredSalesCount: number;
+  salesWape: number | null;
+  salesBias: number | null;
+  scoredScmCount: number;
+  scmWape: number | null;
+  scmBias: number | null;
+  reasonCode: string | null;
+};
+
+export type OlAccuracyFy = {
+  fiscalYear: string | null;
+  rowCount: number;
+  scoredCount: number;
+  salesWape: number | null;
+  scmWape: number | null;
+  salesBias: number | null;
+  scmBias: number | null;
+};
+
+export type BomRequirement = {
+  modelBase: string;
+  modelKey: string | null;
+  partRole: string;
+  itemCode: string | null;
+  description: string | null;
+  quantity: number | null;
+  bomGroup: string | null;
+  modelCount: number | null;
+  commonFlag: string | null;
+  commonNote: string | null;
+};
+
 export function normalizeModelPerformance(row: Record<string, unknown>): ModelPerformance {
   const rank = numberValue(row, ['rank']);
   return { runId: String(value(row, ['run_id']) ?? ''), modelId: String(value(row, ['model_id']) ?? ''), modelVersion: String(value(row, ['model_version']) ?? ''), itemId: String(value(row, ['item_id']) ?? ''), nPeriods: numberValue(row, ['n_periods']) ?? 0, wape: numberValue(row, ['wape']), mape: numberValue(row, ['mape']), bias: numberValue(row, ['bias']), rmse: numberValue(row, ['rmse']), mae: numberValue(row, ['mae']), baselineImprovement: numberValue(row, ['baseline_improvement']), rank: rank === null ? null : Math.trunc(rank), calculationStatus: String(value(row, ['calculation_status']) ?? 'CALCULATION_UNAVAILABLE'), reasonCode: value(row, ['reason_code']) as string | null };
@@ -219,4 +297,24 @@ export function normalizeChampionModel(row: Record<string, unknown>): ChampionMo
 
 export function normalizeModelComparison(row: Record<string, unknown>): ModelComparisonRow {
   return { ...normalizeForecastResult(row), actualQty: numberValue(row, ['actual_qty']), actualDate: value(row, ['actual_date']) as string | null };
+}
+
+export function normalizeShipmentTrend(row: Record<string, unknown>): ShipmentTrend {
+  return { itemCode: String(value(row, ['item_code']) ?? ''), description: value(row, ['description']) as string | null, family: value(row, ['family']) as string | null, itemType: value(row, ['item_type']) as string | null, dataAsOf: value(row, ['data_as_of']) as string | null, monthCount: numberValue(row, ['n_months']) ?? 0, firstMonth: value(row, ['first_ym']) as string | null, lastMonth: value(row, ['last_ym']) as string | null, monthsSinceLast: numberValue(row, ['months_since_last']), spanMonths: numberValue(row, ['n_span']), totalQty: numberValue(row, ['total_qty']), latestQty: numberValue(row, ['latest_qty']), average3m: numberValue(row, ['avg_3m']), average6m: numberValue(row, ['avg_6m']), average12m: numberValue(row, ['avg_12m']), trend3mVs12m: numberValue(row, ['trend_3m_vs_12m']), reasonCode: value(row, ['reason_code']) as string | null };
+}
+
+export function normalizeDemandProfileRt(row: Record<string, unknown>): DemandProfileRt {
+  return { itemCode: String(value(row, ['item_code']) ?? ''), description: value(row, ['description']) as string | null, family: value(row, ['family']) as string | null, itemType: value(row, ['item_type']) as string | null, dataAsOf: value(row, ['data_as_of']) as string | null, firstMonth: value(row, ['first_ym']) as string | null, lastMonth: value(row, ['last_ym']) as string | null, periodCount: numberValue(row, ['n_periods']) ?? 0, nonzeroCount: numberValue(row, ['n_nonzero']) ?? 0, meanNonzeroQty: numberValue(row, ['mean_nonzero_qty']), adi: numberValue(row, ['adi']), zeroDemandRate: numberValue(row, ['zero_demand_rate']), cvSquared: numberValue(row, ['cv_squared']), demandType: normalizeDemandType(value(row, ['demand_type'])), reasonCode: value(row, ['reason_code']) as string | null };
+}
+
+export function normalizeOlAccuracy(row: Record<string, unknown>): OlAccuracy {
+  return { modelBase: String(value(row, ['model_base']) ?? '(미분류)'), fiscalYear: value(row, ['fy_sheet']) as string | null, business: value(row, ['biz']) as string | null, rowCount: numberValue(row, ['n_rows']) ?? 0, firstMonth: value(row, ['first_ym']) as string | null, lastMonth: value(row, ['last_ym']) as string | null, totalActual: numberValue(row, ['total_act']), scoredSalesCount: numberValue(row, ['n_scored_sales']) ?? 0, salesWape: numberValue(row, ['sales_wape']), salesBias: numberValue(row, ['sales_bias']), scoredScmCount: numberValue(row, ['n_scored_scm']) ?? 0, scmWape: numberValue(row, ['scm_wape']), scmBias: numberValue(row, ['scm_bias']), reasonCode: value(row, ['reason_code']) as string | null };
+}
+
+export function normalizeOlAccuracyFy(row: Record<string, unknown>): OlAccuracyFy {
+  return { fiscalYear: value(row, ['fy_sheet']) as string | null, rowCount: numberValue(row, ['n_rows']) ?? 0, scoredCount: numberValue(row, ['n_scored']) ?? 0, salesWape: numberValue(row, ['sales_wape']), scmWape: numberValue(row, ['scm_wape']), salesBias: numberValue(row, ['sales_bias']), scmBias: numberValue(row, ['scm_bias']) };
+}
+
+export function normalizeBomRequirement(row: Record<string, unknown>): BomRequirement {
+  return { modelBase: String(value(row, ['model_base']) ?? ''), modelKey: value(row, ['model_key']) as string | null, partRole: String(value(row, ['part_role']) ?? ''), itemCode: value(row, ['item_code']) as string | null, description: value(row, ['description']) as string | null, quantity: numberValue(row, ['qty']), bomGroup: value(row, ['bom_group']) as string | null, modelCount: numberValue(row, ['n_models']), commonFlag: value(row, ['common_flag']) as string | null, commonNote: value(row, ['common_note']) as string | null };
 }
